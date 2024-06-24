@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
+import androidx.compose.material.SnackbarDuration
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
@@ -23,6 +24,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -35,7 +37,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.AnimBuilder
 import androidx.navigation.NavController
+import androidx.navigation.navOptions
 import kotlinx.coroutines.launch
 import vikash.gathala.wishlistapp.data.Wish
 
@@ -51,6 +55,15 @@ fun AddEditDetailView(
 
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState()
+    if(id != 0L){
+        val wish = viewModel.getAWishById(id).collectAsState(initial = Wish(0L, "", ""))
+        viewModel.wishTitleState= wish.value.title
+        viewModel.wishDescriptionState= wish.value.description
+    }else{
+        viewModel.wishTitleState= ""
+        viewModel.wishDescriptionState= ""
+    }
+    
    Scaffold(scaffoldState= scaffoldState,
        topBar = {
        AppBar(
@@ -78,7 +91,12 @@ fun AddEditDetailView(
            Button(onClick = {
                             if(viewModel.wishTitleState.isNotEmpty() && viewModel.wishDescriptionState.isNotEmpty()){
                                 if(id != 0L){
-                                    //TODO update a wish
+                                    viewModel.updateAWish(Wish(
+                                        id= id,
+                                        title = viewModel.wishTitleState.trim(),
+                                        description = viewModel.wishDescriptionState.trim()
+                                    ))
+                                    snackMessage.value= "Wish Updated"
                                 }else{
                                     //TODO add a wish
                                     viewModel.addWish(
@@ -93,7 +111,7 @@ fun AddEditDetailView(
                                 snackMessage.value= "Enter value in the fields for a wish"
                             }
                scope.launch {
-                   scaffoldState.snackbarHostState.showSnackbar(snackMessage.value)
+                   scaffoldState.snackbarHostState.showSnackbar(snackMessage.value, duration = SnackbarDuration.Short)
                    navController.navigateUp()
                }
            },

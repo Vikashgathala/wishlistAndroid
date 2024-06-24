@@ -49,8 +49,7 @@ class WishViewModel(private val wishRepository: WishRepository= Graph.wishReposi
             wishRepository.updateWish(wish)
         }
     }
-
-    suspend fun getAWishById(id:Long):Flow<Wish>{
+    fun getAWishById(id:Long):Flow<Wish>{
             return wishRepository.getWishById(id)
 
     }
