@@ -1,5 +1,6 @@
 package vikash.gathala.wishlistapp
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,6 +32,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -40,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.AnimBuilder
 import androidx.navigation.NavController
 import androidx.navigation.navOptions
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 import vikash.gathala.wishlistapp.data.Wish
 
@@ -49,12 +53,14 @@ fun AddEditDetailView(
     viewModel: WishViewModel,
     navController: NavController
 ){
+    rememberSystemUiController().setSystemBarsColor(colorResource(id = R.color.moderate_green))
     val snackMessage = remember{
         mutableStateOf("")
     }
-
+    val keyboard = LocalSoftwareKeyboardController.current
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState()
+    val context = LocalContext.current
     if(id != 0L){
         val wish = viewModel.getAWishById(id).collectAsState(initial = Wish(0L, "", ""))
         viewModel.wishTitleState= wish.value.title
@@ -110,8 +116,10 @@ fun AddEditDetailView(
                             }else{
                                 snackMessage.value= "Enter value in the fields for a wish"
                             }
+               keyboard?.hide()
                scope.launch {
-                   scaffoldState.snackbarHostState.showSnackbar(snackMessage.value, duration = SnackbarDuration.Short)
+                   //scaffoldState.snackbarHostState.showSnackbar(snackMessage.value, duration = SnackbarDuration.Short)
+                   Toast.makeText(context, snackMessage.value, Toast.LENGTH_SHORT).show()
                    navController.navigateUp()
                }
            },

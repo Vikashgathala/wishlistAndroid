@@ -1,13 +1,16 @@
 package vikash.gathala.wishlistapp
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +30,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.rememberDismissState
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -36,14 +41,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import vikash.gathala.wishlistapp.data.Wish
 import vikash.gathala.wishlistapp.data.dummyWish
 
@@ -51,6 +63,8 @@ import vikash.gathala.wishlistapp.data.dummyWish
 @Composable
 fun HomeView(navController:NavController, viewModel: WishViewModel){
     val context = LocalContext.current
+    rememberSystemUiController().setSystemBarsColor(colorResource(id = R.color.moderate_green))
+    rememberSystemUiController().setNavigationBarColor(colorResource(id = R.color.darkest_green), darkIcons = true)
     Scaffold(modifier = Modifier
         .fillMaxSize() ,
         topBar = {
@@ -99,14 +113,15 @@ fun HomeView(navController:NavController, viewModel: WishViewModel){
                     }
                 },
                     directions = setOf(DismissDirection.EndToStart),
-                    dismissThresholds = {FractionalThreshold(0.6 ..f)},
+                    dismissThresholds = {FractionalThreshold(0.6f)},
                     dismissContent = {
-                        wishItem(wish = wish) {
+                        wishItem(wish = wish, viewModel) {
                             val id=wish.id
                             navController.navigate(Screen.AddScreen.route + "/$id")
                         }
                     }
                 )
+
 
             }
         }
@@ -115,7 +130,10 @@ fun HomeView(navController:NavController, viewModel: WishViewModel){
 
 
 @Composable
-fun wishItem(wish: Wish, onClick:()->Unit){
+fun wishItem(wish: Wish, viewModel: WishViewModel,onClick:()->Unit){
+    var expanded by remember{
+        mutableStateOf(false)
+    }
     Card(
         elevation = 10.dp,
         shape = MaterialTheme.shapes.large,
@@ -124,13 +142,46 @@ fun wishItem(wish: Wish, onClick:()->Unit){
             .fillMaxWidth()
             .padding(top = 8.dp, start = 8.dp, end = 8.dp)
             .clickable {
-                onClick()
+                expanded = !expanded
             }
     ) {
+
         Column(modifier = Modifier.padding(end = 20.dp, top = 12.dp, bottom = 12.dp, start = 20.dp)) {
             Text(text = wish.title, fontWeight = FontWeight.ExtraBold)
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = wish.description)
+            AnimatedVisibility(visible = expanded) {
+                Row(modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom) {
+                    Button(onClick = { viewModel.deleteAWish(wish) },
+                        colors = ButtonDefaults.buttonColors(colorResource(id = R.color.darkest_green)),
+                        shape = RoundedCornerShape(20.dp)) {
+                        Text(text ="Delete",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                color = colorResource(id = R.color.light_green_text)
+                            ),
+                            modifier = Modifier.padding(3.dp)
+                        )
+                    }
+
+                    Button(onClick = { onClick() },
+                        colors = ButtonDefaults.buttonColors(colorResource(id = R.color.darkest_green)),
+                        shape = RoundedCornerShape(20.dp)) {
+                        Text(text ="Edit",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                color = colorResource(id = R.color.light_green_text)
+                            ),
+                            modifier = Modifier.padding(3.dp)
+                        )
+                    }
+                }
+
+            }
+
+
         }
     }
 }
